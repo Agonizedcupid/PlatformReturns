@@ -30,6 +30,7 @@ import com.aariyan.platformreturns.Database.SP;
 import com.aariyan.platformreturns.Interface.UserList;
 import com.aariyan.platformreturns.Interface.UserListClick;
 import com.aariyan.platformreturns.Model.UserModel;
+import com.android.volley.AuthFailureError;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -44,7 +45,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements UserListClick {
 
@@ -114,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
 
     private void loadData() {
         progressBar.setVisibility(View.VISIBLE);
-        String appendedUrl = Constant.BASE_URL + "users.php";
+        String appendedUrl = Constant.BASE_URL + "GetUsers/";
         AsyncOperations operations = new AsyncOperations(appendedUrl);
         operations.execute();
 //        Networking networking = new Networking();
@@ -330,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
 //    }
 
     @Override
-    public void clickOnUser(String name, int pinCode, int userId) {
+    public void clickOnUser(String name, String pinCode, int userId) {
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         userMessage.setText(String.format("Enter pin for %s", name));
 
@@ -342,8 +345,8 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
                     passwordField.requestFocus();
                     return;
                 }
-                int pin = Integer.parseInt(passwordField.getText().toString());
-                if (pin == pinCode) {
+                String pin = passwordField.getText().toString();
+                if (pin.equals(pinCode)) {
                     Intent intent = new Intent(MainActivity.this, Home.class);
                     intent.putExtra("name", name);
                     intent.putExtra("id", userId);
@@ -362,6 +365,7 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
 
         public AsyncOperations(String baseUrl) {
             this.baseUrl = baseUrl;
+            Log.d("BASE_URL", "AsyncOperations: " + baseUrl);
         }
 
         /**
@@ -431,11 +435,10 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
                                         String UserName = single.getString("UserName");
                                         int TabletUser = single.getInt("TabletUser");
                                         int UserID = single.getInt("UserID");
-                                        int PinCode = single.getInt("PinCode");
-                                        String strQRCode = single.getString("strQRCode");
-                                        int GroupId = single.getInt("GroupId");
+                                        String PinCode = single.getString("PinCode");
 
-                                        UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode, strQRCode, GroupId);
+
+                                        UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode);
                                         //list.add(model);
                                         innerList.add(model);
                                     }
@@ -447,13 +450,25 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
                             }
                         }
                     },
-                    e -> {
-                        userListInterface.error(e.getMessage());
-                    });
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            userListInterface.error(error.getMessage());
+                        }
+                    }
+            ) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> params = new HashMap<String, String>();
+                    params.put("Authorization", Constant.TOKENS);
+                    return params;
+                }
+                //e -> userListInterface.error(e.getMessage()));
+            };
             requestQueue.add(response);
+
         }
 
+
     }
-
-
 }

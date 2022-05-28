@@ -2,19 +2,17 @@ package com.aariyan.platformreturns.Model;
 
 public class UserModel {
     private String UserName;
-    private int TabletUser,UserID,PinCode;
-    private String strQRCode;
-    private int GroupId;
+    private int TabletUser;
+    private int UserID;
+    private String PinCode;
 
     public UserModel() {}
 
-    public UserModel(String userName, int tabletUser, int userID, int pinCode, String strQRCode, int groupId) {
+    public UserModel(String userName, int tabletUser, int userID, String pinCode) {
         UserName = userName;
         TabletUser = tabletUser;
         UserID = userID;
         PinCode = pinCode;
-        this.strQRCode = strQRCode;
-        GroupId = groupId;
     }
 
     public String getUserName() {
@@ -41,28 +39,11 @@ public class UserModel {
         UserID = userID;
     }
 
-    public int getPinCode() {
+    public String getPinCode() {
         return PinCode;
     }
 
-    public void setPinCode(int pinCode) {
+    public void setPinCode(String pinCode) {
         PinCode = pinCode;
     }
-
-    public String getStrQRCode() {
-        return strQRCode;
-    }
-
-    public void setStrQRCode(String strQRCode) {
-        this.strQRCode = strQRCode;
-    }
-
-    public int getGroupId() {
-        return GroupId;
-    }
-
-    public void setGroupId(int groupId) {
-        GroupId = groupId;
-    }
-
 }

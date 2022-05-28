@@ -14,8 +14,11 @@ public class Constant {
     public static String IP_MODE_KEY = "com.com.aariyan.platformreturns.BASE_URL";
 
     //public static String DEFAULT = "N/A";
-    public static String DEFAULT = "http://102.37.0.48/loadscan/";
+    //public static String DEFAULT = "http://102.37.0.48/loadscan/";
+    public static String DEFAULT = "https://linxsystems.flowgear.net/";
     public static String BASE_URL = "";
+
+    public static String TOKENS = "Key=oWA1jvTk4ah8Uim7FTLl-GTSBpiwHP3UMIV3MCpyhbfaByH4vd3CX7NrwVRRfVr-Hn9dsWTAZmFjYX9UB2J9Yg";
 
     public static int userId = 1;
 

@@ -32,7 +32,7 @@ public class Networking {
 
     //Getting the user list:
     public void getUserList(UserList userListInterface) {
-        userDisposable.add(apIs.getUser()
+        userDisposable.add(apIs.getUsers()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<ResponseBody>() {
@@ -64,11 +64,10 @@ public class Networking {
                     String UserName = single.getString("UserName");
                     int TabletUser = single.getInt("TabletUser");
                     int UserID = single.getInt("UserID");
-                    int PinCode = single.getInt("PinCode");
-                    String strQRCode = single.getString("strQRCode");
-                    int GroupId = single.getInt("GroupId");
+                    String PinCode = single.getString("PinCode");
 
-                    UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode, strQRCode, GroupId);
+
+                    UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode);
                     userList.add(model);
                 }
                 userListInterface.gotUserList(userList);

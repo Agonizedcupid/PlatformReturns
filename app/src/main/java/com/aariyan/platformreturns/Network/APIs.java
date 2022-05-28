@@ -15,7 +15,7 @@ public interface APIs {
     Observable<ResponseBody> getUser();
 
     //New api but for now it's not working:
-    @GET("GetUsers")
+    @GET("GetUsers/")
     Observable<ResponseBody> getUsers();
 
     @GET("OrdersAndOrderLines.php?")
