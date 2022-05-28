@@ -7,14 +7,18 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,15 +26,19 @@ import android.widget.Toast;
 
 import com.aariyan.platformreturns.Adapter.UserAdapter;
 import com.aariyan.platformreturns.Constant.Constant;
-import com.aariyan.platformreturns.Database.SharedPreferences;
+import com.aariyan.platformreturns.Database.SP;
+import com.aariyan.platformreturns.Interface.UserList;
 import com.aariyan.platformreturns.Interface.UserListClick;
 import com.aariyan.platformreturns.Model.UserModel;
 import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
 
     private TextView userMessage;
     private EditText passwordField;
-    private Button logInBtn;
+    private TextView logInBtn;
 
     private View bottomSheet, ipBottomSheet;
     BottomSheetBehavior behavior, ipBehavior;
@@ -58,13 +66,14 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
     private FloatingActionButton closeApp;
 
     private EditText ipField;
-    private Button saveBtn, exitBtn;
+    private TextView saveBtn, exitBtn;
 
     private CoordinatorLayout snackBarLayout;
 
     private RequestQueue requestQueue;
 
     private ProgressBar progressBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
         requestQueue = Volley.newRequestQueue(this);
         snackBarLayout = findViewById(R.id.coordinatorLayout);
         progressBar = findViewById(R.id.progressbar);
+        Constant.BASE_URL = getURL();
         getSavedData();
 
         //Instantiating the UI element:
@@ -100,6 +110,30 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
         } else {
             loadData();
         }
+    }
+
+    private void loadData() {
+        progressBar.setVisibility(View.VISIBLE);
+        String appendedUrl = Constant.BASE_URL + "users.php";
+        AsyncOperations operations = new AsyncOperations(appendedUrl);
+        operations.execute();
+//        Networking networking = new Networking();
+//        networking.getUserList(new UserList() {
+//            @Override
+//            public void gotUserList(List<UserModel> listOfUsers) {
+//                Snackbar.make(snackBarLayout, "" + listOfUsers.size() + " Users available!", Snackbar.LENGTH_SHORT).show();
+//                UserAdapter userAdapter = new UserAdapter(MainActivity.this, listOfUsers, MainActivity.this);
+//                recyclerView.setAdapter(userAdapter);
+//                userAdapter.notifyDataSetChanged();
+//                progressBar.setVisibility(View.GONE);
+//            }
+//
+//            @Override
+//            public void error(String error) {
+//                Snackbar.make(snackBarLayout, "" + error, Snackbar.LENGTH_SHORT).show();
+//                progressBar.setVisibility(View.GONE);
+//            }
+//        });
     }
 
     private void initUI() {
@@ -133,13 +167,30 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
 
                 if (ipField.getText().toString().endsWith("/")) {
                     ipBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
-                    SharedPreferences sharedPreferences = new SharedPreferences(MainActivity.this);
-                    sharedPreferences.saveURL(Constant.IP_MODE_KEY, ipField.getText().toString());
+                    SP SP = new SP(MainActivity.this);
+                    SP.saveURL(Constant.IP_MODE_KEY, ipField.getText().toString());
 
                     Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Constant.BASE_URL = getURL();
+                            finish();
+                            startActivity(getIntent());
+
+                            // this basically provides animation
+                            overridePendingTransition(0, 0);
+//                            startActivity(new Intent(MainActivity.this, MainActivity.class)
+//                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//                                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+//                                    .setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
+//                            finish();
+                            loadData();
+                            Log.d("BASE_URL_CHECKING", "run: " + Constant.BASE_URL);
+                        }
+                    }, 2000);
 
 
-                    loadData();
                 } else {
                     Toast.makeText(MainActivity.this, "Ip should end with a / (Forward slash)", Toast.LENGTH_SHORT).show();
                 }
@@ -162,6 +213,13 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
         });
     }
 
+
+    public String getURL() {
+        SP sharedPreferences = new SP(MainActivity.this);
+        //Constant.BASE_URL = sharedPreferences.getBaseUrl("root");
+        return sharedPreferences.getURL(Constant.IP_MODE_KEY, Constant.IP_URL);
+    }
+
     private void showAlertDialog() {
         Dialog dialog = new Dialog(MainActivity.this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -179,8 +237,8 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
                 //saving the value on shared preference:
                 ipBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
 
-                SharedPreferences sharedPreferences = new SharedPreferences(MainActivity.this);
-                String appendedUrl = sharedPreferences.getURL(Constant.IP_MODE_KEY, Constant.IP_URL);
+                SP SP = new SP(MainActivity.this);
+                String appendedUrl = SP.getURL(Constant.IP_MODE_KEY, Constant.IP_URL);
 
                 ipField.setText(appendedUrl, TextView.BufferType.EDITABLE);
             }
@@ -205,71 +263,71 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
         dialog.show();
     }
 
-    private void loadData() {
-        progressBar.setVisibility(View.VISIBLE);
-
-        SharedPreferences sharedPreferences = new SharedPreferences(MainActivity.this);
-
-        String appendedUrl = sharedPreferences.getURL(Constant.IP_MODE_KEY, Constant.IP_URL) + "users.php";
-
-        JsonArrayRequest array = new JsonArrayRequest(appendedUrl,
-                this::parseJson,
-                e -> {
-                    warningMessage.setVisibility(View.VISIBLE);
-                    warningMessage.setText("Error: " + e.getMessage());
-                    progressBar.setVisibility(View.GONE);
-                });
-
-        requestQueue.add(array);
-    }
-
-    private void parseJson(JSONArray array) {
-
-        try {
-
-            //Taking the root data as JSON Array:
-            //JSONArray array = new JSONArray(response.body().string());
-            //checking to know, if the data is not available:
-            //Clearing the list if any data already in:
-            list.clear();
-            if (array.length() > 0) {
-                //Making the warning text Disable:
-                warningMessage.setVisibility(View.GONE);
-                recyclerView.setVisibility(View.VISIBLE);
-                //Traversing through all the array element:
-                for (int i = 0; i < array.length(); i++) {
-                    JSONObject single = array.getJSONObject(i);
-                    //taking particular element:
-                    String UserName = single.getString("UserName");
-                    int TabletUser = single.getInt("TabletUser");
-                    int UserID = single.getInt("UserID");
-                    int PinCode = single.getInt("PinCode");
-                    String strQRCode = single.getString("strQRCode");
-                    int GroupId = single.getInt("GroupId");
-
-                    UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode, strQRCode, GroupId);
-                    list.add(model);
-                }
-
-                UserAdapter adapter = new UserAdapter(MainActivity.this, list, MainActivity.this);
-                recyclerView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
-                progressBar.setVisibility(View.GONE);
-
-            } else {
-                //If any error happen make it visible and show a warning message:
-                warningMessage.setVisibility(View.VISIBLE);
-                warningMessage.setText("No data found!");
-                progressBar.setVisibility(View.GONE);
-            }
-
-        } catch (Exception e) {
-            //If any error happen make it visible and show a warning message:
-            warningMessage.setVisibility(View.VISIBLE);
-            warningMessage.setText("Error: " + e.getMessage());
-            progressBar.setVisibility(View.GONE);
-        }
-    }
+//    private void loadData() {
+//        progressBar.setVisibility(View.VISIBLE);
+//
+//        SP SP = new SP(MainActivity.this);
+//
+//        String appendedUrl = SP.getURL(Constant.IP_MODE_KEY, Constant.IP_URL) + "users.php";
+//
+//        JsonArrayRequest array = new JsonArrayRequest(appendedUrl,
+//                this::parseJson,
+//                e -> {
+//                    warningMessage.setVisibility(View.VISIBLE);
+//                    warningMessage.setText("Error: " + e.getMessage());
+//                    progressBar.setVisibility(View.GONE);
+//                });
+//
+//        requestQueue.add(array);
+//    }
+//
+//    private void parseJson(JSONArray array) {
+//
+//        try {
+//
+//            //Taking the root data as JSON Array:
+//            //JSONArray array = new JSONArray(response.body().string());
+//            //checking to know, if the data is not available:
+//            //Clearing the list if any data already in:
+//            list.clear();
+//            if (array.length() > 0) {
+//                //Making the warning text Disable:
+//                warningMessage.setVisibility(View.GONE);
+//                recyclerView.setVisibility(View.VISIBLE);
+//                //Traversing through all the array element:
+//                for (int i = 0; i < array.length(); i++) {
+//                    JSONObject single = array.getJSONObject(i);
+//                    //taking particular element:
+//                    String UserName = single.getString("UserName");
+//                    int TabletUser = single.getInt("TabletUser");
+//                    int UserID = single.getInt("UserID");
+//                    int PinCode = single.getInt("PinCode");
+//                    String strQRCode = single.getString("strQRCode");
+//                    int GroupId = single.getInt("GroupId");
+//
+//                    UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode, strQRCode, GroupId);
+//                    list.add(model);
+//                }
+//
+//                UserAdapter adapter = new UserAdapter(MainActivity.this, list, MainActivity.this);
+//                recyclerView.setAdapter(adapter);
+//                adapter.notifyDataSetChanged();
+//                progressBar.setVisibility(View.GONE);
+//
+//            } else {
+//                //If any error happen make it visible and show a warning message:
+//                warningMessage.setVisibility(View.VISIBLE);
+//                warningMessage.setText("No data found!");
+//                progressBar.setVisibility(View.GONE);
+//            }
+//
+//        } catch (Exception e) {
+//            //If any error happen make it visible and show a warning message:
+//            warningMessage.setVisibility(View.VISIBLE);
+//            warningMessage.setText("Error: " + e.getMessage());
+//            progressBar.setVisibility(View.GONE);
+//        }
+//    }
 
     @Override
     public void clickOnUser(String name, int pinCode, int userId) {
@@ -279,6 +337,11 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
         logInBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (TextUtils.isEmpty(passwordField.getText().toString().trim())) {
+                    passwordField.setError("Enter password");
+                    passwordField.requestFocus();
+                    return;
+                }
                 int pin = Integer.parseInt(passwordField.getText().toString());
                 if (pin == pinCode) {
                     Intent intent = new Intent(MainActivity.this, Home.class);
@@ -291,7 +354,106 @@ public class MainActivity extends AppCompatActivity implements UserListClick {
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
             }
         });
+    }
 
+    private class AsyncOperations extends AsyncTask<Void, Void, List<UserModel>> {
+        List<UserModel> listOfUser = new ArrayList<>();
+        String baseUrl;
+
+        public AsyncOperations(String baseUrl) {
+            this.baseUrl = baseUrl;
+        }
+
+        /**
+         * Override this method to perform a computation on a background thread. The
+         * specified parameters are the parameters passed to {@link #execute}
+         * by the caller of this task.
+         * <p>
+         * This will normally run on a background thread. But to better
+         * support testing frameworks, it is recommended that this also tolerates
+         * direct execution on the foreground thread, as part of the {@link #execute} call.
+         * <p>
+         * This method can call {@link #publishProgress} to publish updates
+         * on the UI thread.
+         *
+         * @param voids The parameters of the task.
+         * @return A result, defined by the subclass of this task.
+         * @see #onPreExecute()
+         * @see #onPostExecute
+         * @see #publishProgress
+         */
+        @Override
+        protected synchronized List<UserModel> doInBackground(Void... voids) {
+
+            parseJson(new UserList() {
+                @Override
+                public void gotUserList(List<UserModel> listOfUsers) {
+                    Snackbar.make(snackBarLayout, "" + listOfUsers.size() + " Users available!", Snackbar.LENGTH_SHORT).show();
+                    UserAdapter userAdapter = new UserAdapter(MainActivity.this, listOfUsers, MainActivity.this);
+                    recyclerView.setAdapter(userAdapter);
+                    userAdapter.notifyDataSetChanged();
+                    progressBar.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void error(String error) {
+                    Snackbar.make(snackBarLayout, "" + error, Snackbar.LENGTH_SHORT).show();
+                    progressBar.setVisibility(View.GONE);
+                }
+            });
+            return listOfUser;
+        }
+
+        @Override
+        protected synchronized void onPostExecute(List<UserModel> listOfUsers) {
+            super.onPostExecute(listOfUsers);
+
+        }
+
+        private void parseJson(UserList userListInterface) {
+
+            List<UserModel> innerList = new ArrayList<>();
+
+            JsonArrayRequest response = new JsonArrayRequest(baseUrl,
+                    new Response.Listener<JSONArray>() {
+                        @Override
+                        public void onResponse(JSONArray array) {
+                            try {
+                                innerList.clear();
+                                if (array.length() > 0) {
+                                    //Making the warning text Disable:
+                                    warningMessage.setVisibility(View.GONE);
+                                    recyclerView.setVisibility(View.VISIBLE);
+                                    //Traversing through all the array element:
+                                    for (int i = 0; i < array.length(); i++) {
+                                        JSONObject single = array.getJSONObject(i);
+                                        //taking particular element:
+                                        String UserName = single.getString("UserName");
+                                        int TabletUser = single.getInt("TabletUser");
+                                        int UserID = single.getInt("UserID");
+                                        int PinCode = single.getInt("PinCode");
+                                        String strQRCode = single.getString("strQRCode");
+                                        int GroupId = single.getInt("GroupId");
+
+                                        UserModel model = new UserModel(UserName, TabletUser, UserID, PinCode, strQRCode, GroupId);
+                                        //list.add(model);
+                                        innerList.add(model);
+                                    }
+                                    userListInterface.gotUserList(innerList);
+                                }
+
+                            } catch (Exception e) {
+                                userListInterface.error(e.getMessage());
+                            }
+                        }
+                    },
+                    e -> {
+                        userListInterface.error(e.getMessage());
+                    });
+            requestQueue.add(response);
+        }
 
     }
+
+
 }

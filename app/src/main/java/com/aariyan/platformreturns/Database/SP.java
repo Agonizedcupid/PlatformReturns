@@ -7,12 +7,12 @@ import android.content.Context;
 import com.aariyan.platformreturns.Constant.Constant;
 
 
-public class SharedPreferences {
+public class SP {
 
     private Context context;
 
 
-    public SharedPreferences(Context context) {
+    public SP(Context context) {
         this.context = context;
     }
 
@@ -21,7 +21,7 @@ public class SharedPreferences {
         android.content.SharedPreferences.Editor editor = preferences.edit();
 
         editor.putString(Constant.IP_URL, URL);
-        editor.commit();
+        editor.apply();
     }
 
 

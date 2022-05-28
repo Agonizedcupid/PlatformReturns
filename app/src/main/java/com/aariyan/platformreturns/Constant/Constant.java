@@ -11,10 +11,11 @@ import java.util.Calendar;
 public class Constant {
 
     public static String IP_URL = "IP_URL";
-    public static String IP_MODE_KEY = "com.aariyan.scannloading.BASE_URL";
+    public static String IP_MODE_KEY = "com.com.aariyan.platformreturns.BASE_URL";
 
     //public static String DEFAULT = "N/A";
     public static String DEFAULT = "http://102.37.0.48/loadscan/";
+    public static String BASE_URL = "";
 
     public static int userId = 1;
 

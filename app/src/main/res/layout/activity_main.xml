@@ -78,7 +78,7 @@
         app:behavior_peekHeight="0dp"
         app:behavior_hideable="true"
         android:padding="15dp"
-        android:background="@android:color/darker_gray"
+        android:background="@drawable/bottom_sheet_background"
         >
 
         <TextView
@@ -103,11 +103,16 @@
             android:textColor="@color/black"
             />
 
-        <Button
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:layout_marginTop="5dp"
+            android:layout_gravity="center"
+            android:textAlignment="center"
+            android:gravity="center"
             android:text="Login"
+            android:background="@drawable/button_ripple"
+            android:textColor="@color/white"
             android:id="@+id/logInBtn"
             />
 
@@ -123,7 +128,7 @@
         app:behavior_peekHeight="0dp"
         app:behavior_hideable="true"
         android:padding="15dp"
-        android:background="@android:color/darker_gray"
+        android:background="@drawable/bottom_sheet_background"
         >
 
         <TextView
@@ -154,21 +159,36 @@
             android:layout_marginTop="10dp"
             >
 
-            <Button
+            <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
                 android:text="Save"
+                android:textColor="@color/white"
+                android:background="@drawable/button_ripple"
                 android:id="@+id/saveBtn"
-                />
+                android:layout_gravity="center"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:layout_height="40dp"/>
+<!--            <Button-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="5dp"-->
+<!--                android:text="Save"-->
+<!--                android:id="@+id/saveBtn"-->
+<!--                />-->
 
-            <Button
+            <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:textAlignment="center"
+                android:gravity="center"
                 android:text="Exit"
+                android:background="@drawable/button_ripple"
+                android:textColor="@color/white"
                 android:layout_marginStart="15dp"
                 android:id="@+id/exitBtn"
                 />

@@ -1,20 +1,21 @@
 package com.aariyan.platformreturns.Network;
 
+import com.aariyan.platformreturns.Constant.Constant;
+
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava3.RxJava3CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
     public static Retrofit retrofit = null;
 
-    private static String BASE_URL = "http://102.37.0.48/loadscan/";
-    //private static String BASE_URL = Constant.DEFAULT_URL;
-//    static SharedPreferences sharedPreferences = new SharedPreferences(context.getApplicationContext());
-//    private static String BASE_URL = sharedPreferences.getURL(Constant.IP_MODE_KEY, Constant.IP_URL);
+    private static final String BASE_URL = Constant.BASE_URL;
 
     public static Retrofit getClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
+                    .addCallAdapterFactory(RxJava3CallAdapterFactory.create())
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
