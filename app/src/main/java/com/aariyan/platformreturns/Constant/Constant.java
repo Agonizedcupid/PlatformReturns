@@ -31,7 +31,7 @@ public class Constant {
      */
 
     public static String getDate() {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar cal = Calendar.getInstance();
         return dateFormat.format(cal.getTime());
     }
